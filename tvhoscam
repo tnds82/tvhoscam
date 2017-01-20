@@ -1,0 +1,75 @@
+#!/bin/bash
+
+repo="sudo add-apt-repository"
+update="sudo apt-get -y update"
+upgrade="sudo apt-get upgrade -y"
+inst="sudo apt-get install"
+copy="sudo cp"
+change="sudo sed -i"
+
+$inst whiptail -y
+
+whiptail --title "Install Tvh and OSCam by Tnds in Ubuntu" --msgbox "WELCOME TO INSTALLATION             			 Choose Ok to continue." 10 50
+
+if (whiptail --title "Ubuntu Update" --yesno "You want update Ubuntu?" 8 50) then
+    echo "You selected Yes, to want update Ubuntu"
+	$update
+	$upgrade
+else
+    echo "You selected No, to want update Ubuntu"
+fi
+
+
+if (whiptail --title "Install Tvh and OSCam" --yesno "Click yes to install or no to update" 8 50) then
+    echo "You selected Yes, to want Install"
+        echo "Installing the necessary dependencies and downloading the necessary files to install KODIServer"
+                        $inst build-essential -y
+                        $inst libssl-dev libpcsclite-dev -y
+                        $inst mercurial cvs subversion libncurses-dev -y
+                        $inst cmake -y
+
+cmd=(whiptail --separate-output  --title "PROGRAMS TO INSTALL ON VPSERVER" --checklist "Select Options:" 10 38 3)
+options=(1 "OSCam Server " off    # any option can be set to default to "on"
+         2 "Tvheadend Server " off)
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+    case $choice in
+       1)
+           echo "Installing Oscam Server"
+                cd /usr/src
+                sudo svn checkout http://streamboard.de.vu/svn/oscam/trunk oscam
+                cd oscam
+                sudo cmake -DWEBIF=1 -DPCSC=1
+                sudo make
+                $copy oscam /usr/local/bin
+                cd ..
+                sudo rm -rf oscam
+                cd /usr/local/bin
+                sudo chmod 755 oscam
+                $change '$ i\/usr/local/bin/oscam -b' /etc/rc.local
+                sudo chmod 777 /usr/local/etc
+
+           ;;
+       2)
+           echo "Installing Tvheadend Server"
+		sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 379CE192D401AB61
+		echo "deb https://dl.bintray.com/tvheadend/deb xenial stable" | sudo tee -a /etc/apt/sources.list
+		echo "deb https://dl.bintray.com/tvheadend/deb xenial unstable" | sudo tee -a /etc/apt/sources.list
+		$update
+		$inst tvheadend -y
+           ;;
+
+    esac
+done
+
+else
+    echo "You selected No, to want Update"
+	{
+         for ((i = 0 ; i <= 100 ; i+=5)); do
+                sleep 0.1
+                echo $i
+         done
+        } | whiptail --gauge "In Projec" 6 50 0
+fi
