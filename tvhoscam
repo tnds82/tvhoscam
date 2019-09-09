@@ -39,7 +39,7 @@ do
        1)
            echo "Installing Oscam Server"
                 cd /usr/src
-                sudo svn checkout http://streamboard.de.vu/svn/oscam/trunk oscam
+                sudo svn checkout http://streamboard.tv/svn/oscam/trunk/ oscam
                 cd oscam
                 sudo cmake -DWEBIF=1 -DPCSC=1
                 sudo make
